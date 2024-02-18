@@ -100,27 +100,58 @@ class User(Observer):
         self.notifications.append(message)
 
     # need to change!!!!!!!!!!!!!!!!!
+    # def print_notifications(self):
+    #     print(f"{self.username}'s notifications:")
+    #     for notification in self.notifications:
+    #         print(notification)
+    #     for post in self.posts:
+    #         for like in post.likes:
+    #             if like != self:
+    #                 print(f"{like.username} liked your post")
+    #         for comment in post.comments:
+    #             if comment[0] != self:
+    #                 print(f"{comment[0].username} commented on your post")
+    #     for follower in self.followers:
+    #         for follower_post in follower.posts:
+    #             if follower_post not in self.posts:
+    #                 print(f"{follower.username} has a new post")
+    #             for follower_like in follower_post.likes:
+    #                 if follower_like == self:
+    #                     print(f"{follower.username} liked {follower_post.created_by.username}'s post.")
+    #             for follower_comment in follower_post.comments:
+    #                 if follower_comment[0] == self:
+    #                     print(f"{follower.username} commented on {follower_post.created_by.username}'s post: {follower_comment[1]}")
+
     def print_notifications(self):
         print(f"{self.username}'s notifications:")
-        for notification in self.notifications:
-            print(notification)
+        
+        # Collect notifications
+        notifications = []
+
         for post in self.posts:
             for like in post.likes:
                 if like != self:
-                    print(f"{like.username} liked your post")
+                    notifications.append((like.username, f"{like.username} liked your post"))
             for comment in post.comments:
                 if comment[0] != self:
-                    print(f"{comment[0].username} commented on your post")
+                    notifications.append((comment[0].username, f"{comment[0].username} commented on your post"))
+
         for follower in self.followers:
             for follower_post in follower.posts:
                 if follower_post not in self.posts:
-                    print(f"{follower.username} has a new post")
+                    notifications.append((follower.username, f"{follower.username} has a new post"))
                 for follower_like in follower_post.likes:
                     if follower_like == self:
-                        print(f"{follower.username} liked {follower_post.created_by.username}'s post.")
+                        notifications.append((follower.username, f"{follower.username} liked {follower_post.created_by.username}'s post."))
                 for follower_comment in follower_post.comments:
                     if follower_comment[0] == self:
-                        print(f"{follower.username} commented on {follower_post.created_by.username}'s post: {follower_comment[1]}")
+                        notifications.append((follower.username, f"{follower.username} commented on {follower_post.created_by.username}'s post: {follower_comment[1]}"))
+
+        # Print notifications in the order they were added
+        for _, notification in notifications:
+            print(notification)
+
+
 
     def publish_post(self, post_type, ConOrPath, price=None, location=None):
         if not self.logged_in:
@@ -165,7 +196,7 @@ class Post:
 
     # need to do a picture
     def display(self):
-        plt.imshow(self.content)
+        pass
 
     def __str__(self):
         if isinstance(self, TextPost):
@@ -192,11 +223,11 @@ class ImagePost(Post):
         super().display()
         print(f"Image: {self.image_path}")
 
-    def show_image(self):
-        img = mpimg.imread(self.image_path)
-        plt.imshow(img)
-        plt.axis('off')
-        plt.show()
+    # def show_image(self):
+    #     img = mpimg.imread(self.image_path)
+    #     plt.imshow(img)
+    #     plt.axis('off')
+    #     plt.show()
 
 
 class SalePost(Post):
