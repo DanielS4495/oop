@@ -1,4 +1,4 @@
-# Singleton Design Pattern
+0# Singleton Design Pattern
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -15,13 +15,13 @@ class Singleton(type):
 class PostFactory:
     def create_post(self, post_type, post_id, content, created_at, created_by, **kwargs):
         if post_type == 'Text':
-            created_by.notify(f"{created_by.username} published a post:\n\"{content}\"\n")
+            print(f"{created_by.username} published a post:\n\"{content}\"\n")
             return TextPost(post_id, content, created_at, created_by)
         elif post_type == 'Image':
-            created_by.notify(f"{created_by.username} posted a picture\n")
+            print(f"{created_by.username} posted a picture\n")
             return ImagePost(post_id, content, created_at, created_by, kwargs['image_path'])
         elif post_type == 'Sale':
-            created_by.notify(f"{created_by.username} posted a product for sale:\nFor sale! {kwargs['description']}, price: {kwargs['price']}, pickup from: {kwargs['location']}\n")
+            print(f"{created_by.username} posted a product for sale:\nFor sale! {kwargs['description']}, price: {kwargs['price']}, pickup from: {kwargs['location']}\n")
             return SalePost(post_id, content, created_at, created_by, kwargs['description'], kwargs['price'], kwargs['location'])
         else:
             raise ValueError("Invalid post type")
@@ -65,23 +65,27 @@ class User(Observer):
     def create_post(self, content):
         post = Post(len(self.posts) + 1, content, datetime.now(), self)
         self.posts.append(post)
+        for follower in self.followers:
+            follower.add_notification(f"{follower.username} has a new post")
         return post
 
     def like_post(self, post):
         if post.created_by != self:
             # post.add_like(self)
-            self.notify(f"notification to {post.created_by.username}: {self.username} liked your post")
+            print(f"notification to {post.created_by.username}: {self.username} liked your post")
+            post.created_by.add_notification(f"{self.username} liked your post")
 
     def comment_on_post(self, post, comment):
         # post.add_comment(self, comment)
         if post.created_by.username != self:
-            self.notify(f"notification to {post.created_by.username}: {self.username} commented on your post: {comment}")
+            print(f"notification to {post.created_by.username}: {self.username} commented on your post: {comment}")
+            post.created_by.add_notification(f"{self.username} commented on your post")
 
     def follow(self, other_user):
         if other_user != self:
             other_user.followers.add(self)
-            self.following.add(other_user)
-            self.notify(f"{self.username} started following {other_user.username}")
+            # self.following.add(other_user)
+            print(f"{self.username} started following {other_user.username}")
         else:
             print("You can't follow yourself.")
         # for post in other_user.posts:
@@ -89,8 +93,8 @@ class User(Observer):
 
     def unfollow(self, other_user):
         other_user.followers.remove(self)
-        self.following.remove(other_user)
-        self.notify(f"{self.username} unfollowed {other_user.username}")
+        # self.following.remove(other_user)
+        print(f"{self.username} unfollowed {other_user.username}")
 
     def notify(self, message):
         self.notifications.append(message)
@@ -122,33 +126,39 @@ class User(Observer):
     #                 if follower_comment[0] == self:
     #                     print(f"{follower.username} commented on {follower_post.created_by.username}'s post: {follower_comment[1]}")
 
+# /////////////
+    # def print_notifications(self):
+    #     print(f"{self.username}'s notifications:")
+        
+    #     # Collect notifications
+    #     notifications = []
+
+    #     for post in self.posts:
+    #         for like in post.likes:
+    #             if like != self:
+    #                 notifications.append((like.username, f"{like.username} liked your post"))
+    #         for comment in post.comments:
+    #             if comment[0] != self:
+    #                 notifications.append((comment[0].username, f"{comment[0].username} commented on your post"))
+
+    #     for follower in self.followers:
+    #         for follower.posts in follower.posts:
+    #             if follower.posts not in self.posts:
+    #                 notifications.append((follower.username, f"{follower.username} has a new post"))
+    #             for follower_like in follower.posts.likes:
+    #                 if follower_like == self:
+    #                     notifications.append((follower.username, f"{follower.username} liked {follower.posts.created_by.username}'s post."))
+    #             for follower_comment in follower.posts.comments:
+    #                 if follower_comment[0] == self:
+    #                     notifications.append((follower.username, f"{follower.username} commented on {follower.posts.created_by.username}'s post: {follower_comment[1]}"))
+
+    #     # Print notifications in the order they were added
+    #     for _, notification in notifications:
+    #         print(notification)
+        
     def print_notifications(self):
         print(f"{self.username}'s notifications:")
-        
-        # Collect notifications
-        notifications = []
-
-        for post in self.posts:
-            for like in post.likes:
-                if like != self:
-                    notifications.append((like.username, f"{like.username} liked your post"))
-            for comment in post.comments:
-                if comment[0] != self:
-                    notifications.append((comment[0].username, f"{comment[0].username} commented on your post"))
-
-        for follower in self.followers:
-            for follower_post in follower.posts:
-                if follower_post not in self.posts:
-                    notifications.append((follower.username, f"{follower.username} has a new post"))
-                for follower_like in follower_post.likes:
-                    if follower_like == self:
-                        notifications.append((follower.username, f"{follower.username} liked {follower_post.created_by.username}'s post."))
-                for follower_comment in follower_post.comments:
-                    if follower_comment[0] == self:
-                        notifications.append((follower.username, f"{follower.username} commented on {follower_post.created_by.username}'s post: {follower_comment[1]}"))
-
-        # Print notifications in the order they were added
-        for _, notification in notifications:
+        for notification in self.notifications:
             print(notification)
 
 
@@ -168,8 +178,8 @@ class User(Observer):
         else:
             raise ValueError("Invalid post type")
         self.posts.append(new_post)
-        for user in self.following:
-            if new_post.created_by == user:
+        for user in self.followers:
+            if self.username != user:
                 user.add_notification(f"{self.username} has a new post")
         return new_post
 
@@ -211,8 +221,8 @@ class Post:
 class TextPost(Post):
     pass
 
-# import matplotlib.pyplot as plt
-# import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
+import matplotlib.image as mpimg
 
 class ImagePost(Post):
     def __init__(self, post_id, content, created_at, created_by, image_path):
@@ -220,14 +230,13 @@ class ImagePost(Post):
         self.image_path = image_path
 
     def display(self):
-        super().display()
-        print(f"Image: {self.image_path}")
+        print(f"Shows picture")
+        img = mpimg.imread(self.image_path)
+        plt.imshow(img)
+        plt.axis('off')
+        plt.show(block=False)
 
-    # def show_image(self):
-    #     img = mpimg.imread(self.image_path)
-    #     plt.imshow(img)
-    #     plt.axis('off')
-    #     plt.show()
+   
 
 
 class SalePost(Post):
@@ -355,7 +364,7 @@ def main():
                                  "hoping to find a westward route to Asia, but instead,\n"
                                  "he discovered the Americas, changing the course of history forever.")
     # Creating image post
-    p2 = u4.publish_post("Image", 'image1.jpg')
+    p2 = u4.publish_post("Image", '/home/daniel/Desktop/oop/image1.jpg')
 
     # Creating sale post
     p3 = u3.publish_post("Sale", "Toyota prius 2012", 42000, "Haifa")
