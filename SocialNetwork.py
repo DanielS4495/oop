@@ -1,4 +1,4 @@
-0# Singleton Design Pattern
+# Singleton Design Pattern
 from datetime import datetime
 
 import matplotlib.pyplot as plt
@@ -32,19 +32,19 @@ class Observer:
         pass
 
 
-class Subject:
-    def __init__(self):
-        self._observers = set()
-
-    def add_observer(self, observer):
-        self._observers.add(observer)
-
-    def remove_observer(self, observer):
-        self._observers.remove(observer)
-
-    def notify_observers(self, message):
-        for observer in self._observers:
-            observer.update(message)
+# class Subject:
+#     def __init__(self):
+#         self._observers = set()
+#
+#     def add_observer(self, observer):
+#         self._observers.add(observer)
+#
+#     def remove_observer(self, observer):
+#         self._observers.remove(observer)
+#
+#     def notify_observers(self, message):
+#         for observer in self._observers:
+#             observer.update(message)
 
 from datetime import datetime
 class User(Observer):
@@ -60,7 +60,7 @@ class User(Observer):
         self.posts = []
         self.notifications = []
         self.social_network = social_network
-        social_network.add_observer(self)
+       # social_network.add_observer(self)
 
     def create_post(self, content):
         post = Post(len(self.posts) + 1, content, datetime.now(), self)
@@ -266,13 +266,12 @@ class SalePost(Post):
         status = "Available" if self.available else "Sold"
         return f"{self.created_by.username} posted a product for sale:\n{status}! {self.description}, price: {self.price}, pickup from: {self.location}\n"
 
-class SocialNetwork(Subject,metaclass=Singleton):
+class SocialNetwork(metaclass=Singleton):
     # צריך לאכוף את זה שלא נוצר עוד אחד
     def __init__(self, name):
         super().__init__()
         self.name = name
-        self.users = set()
-        self.posts = []
+        self.users = []
         print(f"The social network {name} was created!")
 
     def sign_up(self, username, password):
@@ -289,7 +288,7 @@ class SocialNetwork(Subject,metaclass=Singleton):
         # Create a new user and add to the network
         user_id = len(self.users) + 1
         new_user = User(user_id, username, password, self)
-        self.users.add(new_user)
+        self.users.append(new_user)
         new_user.logged_in = True
         return new_user
 
@@ -326,9 +325,5 @@ class SocialNetwork(Subject,metaclass=Singleton):
     def __str__(self):
         result = "Twitter social network:\n"
         for user in self.users:
-            result += str(user) + "\n"
+            result += user.__str__() + "\n"
         return result
-
-
-
-
