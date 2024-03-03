@@ -117,7 +117,7 @@ class User(Observer):
                 return new_post
         except Exception as e:
             print("An error occurred:", e)
-            return None
+           
 
     def __str__(self):
         return f"User name: {self.username}, Number of posts: {len(self.posts)}, Number of followers: {len(self.followers)}"
@@ -133,12 +133,31 @@ class Post:
         self.comments = []
 
     def like(self, user):
-        self.likes.append(user)
-        user.like_post(self)
+        flag = True
+        try:
+            if user.logged_in == True:
+                for user2 in self.likes:
+                    if user2 == user:
+                        flag = False
+                if flag:
+                    self.likes.append(user)
+                    user.like_post(self)
+                else:
+                    raise PermissionError("User already liked post")
+            else:
+                raise PermissionError("User not logged in")
+        except Exception as e:
+            print("An error occurred:", e)
 
     def comment(self, user, comment):
-        self.comments.append((user, comment))
-        user.comment_on_post(self,comment)
+        try:
+            if user.logged_in == True:
+                self.comments.append((user, comment))
+                user.comment_on_post(self,comment)
+            else:
+                raise PermissionError("User not logged in")
+        except Exception as e:
+            print("An error occurred:", e)
 
     def display(self):
         pass
@@ -184,9 +203,11 @@ class SalePost(Post):
     def discount(self, percent, password):
         try:
             if self.created_by.password == password:
-                if  isinstance(percent, int):
+                if  100 >= percent > 0:
                     self.price -= (self.price * percent) / 100
                     print(f"Discount on {self.created_by.username} product! the new price is: {self.price}")
+                else:
+                    raise PermissionError("wrong percent")
             else:
                 raise PermissionError("Incorrect password for discount")
         except Exception as e:
