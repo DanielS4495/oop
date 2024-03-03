@@ -27,8 +27,6 @@ class PostFactory:
                 raise ValueError("Invalid post type")
         except Exception as e:
             print("An error occurred:", e)
-            return None
-
 
 class Observer:
     def update(self, message):
@@ -43,8 +41,8 @@ class User(Observer):
         self.password = password
         self.date_joined = datetime.now()
         self.logged_in = False
-        self.followers = set()
-        self.following = set()
+        self.followers = []
+        self.following = []
         self.posts = []
         self.notifications = []
         self.social_network = social_network
@@ -68,18 +66,28 @@ class User(Observer):
 
     def follow(self, other_user):
         try:
-            if other_user != self:
-                other_user.followers.add(self)
+            if other_user != self or self.username not in other_user.followres:
+                other_user.followers.append(self)
                 print(f"{self.username} started following {other_user.username}")
             else:
-                raise (Exception("You can't follow yourself."))
+                raise (Exception("You can't follow yourself or your already following the other user."))
         except Exception as e:
             print("An error occurred:", e)
-            return None
 
     def unfollow(self, other_user):
-        other_user.followers.remove(self)
-        print(f"{self.username} unfollowed {other_user.username}")
+        flag = False
+        try:
+            if (self.username == other_user.username):
+                raise (Exception("You can't follow yourself."))
+            for follower in other_user.followers:
+                if follower.username == self.username:
+                    other_user.followers.remove(self)
+                    print(f"{self.username} unfollowed {other_user.username}")
+                    flag = True
+            if not flag:
+                raise (Exception("You dont follow other user."))
+        except Exception as e:
+            print("An error occurred:", e)
 
     def notify(self, message):
         self.notifications.append(message)
